@@ -32,7 +32,6 @@ CONTENT_TYPE_BY_EXT = {
     "png": "image/png",
     "webp": "image/webp",
     "gif": "image/gif",
-    "mp4": "video/mp4",
 }
 
 
@@ -40,9 +39,11 @@ class ExtractionError(Exception):
     """gallery-dl itself failed or refused the URL — see its stderr."""
 
 
-def _guess_ext(url: str) -> str:
+def _image_ext(url: str) -> str | None:
+    """The URL's image extension, or None for anything that isn't a still
+    (audio, video, ...) — those are skipped rather than stored as photos."""
     ext = url.split("?")[0].rsplit(".", 1)[-1].lower()
-    return ext if ext in CONTENT_TYPE_BY_EXT else "jpg"
+    return ext if ext in CONTENT_TYPE_BY_EXT else None
 
 
 def extract_board_items(board_url: str, max_images: int) -> list[list[str]]:
@@ -95,13 +96,16 @@ def _download_first_that_works(candidates: list[str]) -> tuple[bytes, str] | Non
     for url in candidates:
         if not url.startswith(("http://", "https://")):
             continue
+        ext = _image_ext(url)
+        if not ext:
+            continue
         try:
             response = requests.get(url, timeout=config.DOWNLOAD_TIMEOUT_SECONDS)
             response.raise_for_status()
         except requests.RequestException as e:
             log.warning("Candidate failed (%s): %s", url, e)
             continue
-        return response.content, _guess_ext(url)
+        return response.content, ext
     return None
 
 

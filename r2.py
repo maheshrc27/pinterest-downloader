@@ -22,7 +22,7 @@ def client():
     if _client is None:
         _client = boto3.client(
             "s3",
-            endpoint_url=f"https://{config.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+            endpoint_url=f"https://{config.R2_ACCOUNT_ID}.us.r2.cloudflarestorage.com",
             aws_access_key_id=config.R2_ACCESS_KEY_ID,
             aws_secret_access_key=config.R2_SECRET_ACCESS_KEY,
             config=Config(signature_version="s3v4"),
